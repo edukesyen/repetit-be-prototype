@@ -10,11 +10,11 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-@app.get("/items/", response_model=list[schemas.Item])
-async def read_items(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    items = await crud.get_items(db)
-    return items
+@app.get("/users/", response_model=list[schemas.User])
+def read_users(db: Session = Depends(get_db)):
+    users = crud.user.get(db)
+    return users
 
-@app.post("/items/", response_model=schemas.Item)
-async def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
-    return await crud.create_item(db, item)
+@app.post("/users/", response_model=schemas.User)
+def create_user(create_schema: schemas.UserCreate, db: Session = Depends(get_db)):
+    return crud.user.create(db, create_schema)

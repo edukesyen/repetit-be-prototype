@@ -2,16 +2,36 @@
 
 from sqlalchemy.orm import Session
 from sqlalchemy.future import select
-from .models import Item
-from .schemas import ItemCreate
+from . import models, schemas
 
-async def get_items(db: Session):
-    result = await db.execute(select(Item))
-    return result.scalars().all()
 
-async def create_item(db: Session, item: ItemCreate):
-    db_item = Item(**item.dict())
-    db.add(db_item)
-    await db.commit()
-    await db.refresh(db_item)
-    return db_item
+class CRUDBase():
+    def __init__(self):
+        pass
+
+    def get(self, db: Session):
+        pass
+
+    def create(self):
+        pass
+
+    def update(self):
+        pass
+
+    def delete(self):
+        pass
+
+
+class CRUDUser(CRUDBase):
+    def get(self, db: Session):
+        result = db.execute(select(models.User))
+        return result.scalars().all()
+    
+    def create(self, db: Session, create_schema: schemas.UserCreate):
+        db_data = models.User(**create_schema.dict())
+        db.add(db_data)
+        db.commit()
+        db.refresh(db_data)
+        return db_data
+    
+user = CRUDUser()
