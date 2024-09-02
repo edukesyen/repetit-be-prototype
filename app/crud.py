@@ -43,7 +43,7 @@
 
 from sqlalchemy.orm import Session
 from sqlalchemy.future import select
-from . import models, schemas
+from . import models
 
 
 class CRUDBase:
@@ -85,10 +85,23 @@ class CRUDBase:
         return obj
 
 
+
 class CRUDUser(CRUDBase):
     def __init__(self):
         super().__init__(models.User)
 
-
-# Initialize CRUDUser instance
 user = CRUDUser()
+
+
+
+class CRUDTopic(CRUDBase):
+    def __init__(self):
+        super().__init__(models.Topic)
+
+    def get_by_user_id(self, db: Session, user_id: int):
+        """Retrieve all topics for a given user ID."""
+        return db.execute(select(self.model).where(self.model.user_id == user_id)).scalars().all()
+
+topic = CRUDTopic()
+
+

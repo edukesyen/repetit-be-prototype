@@ -16,15 +16,15 @@ class User(Base):
     diamond = Column(Integer)
     star = Column(Integer)
 
-    # topics: Mapped[List["Topic"]] = relationship(back_populates="user")
+    topics: Mapped[List["Topic"]] = relationship(back_populates="user")
 
 
-# class Topic(Base):
-#     __tablename__ = "topics"
+class Topic(Base):
+    __tablename__ = "topics"
 
-#     id = Column(Integer, primary_key=True, index=True)
-#     name = Column(String, nullable=False)
-#     tag = Column(String, nullable=False)
-#     user_id = Column(Integer, ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    tag = Column(String, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-#     user: Mapped["User"] = relationship(back_populates='topics')
+    user: Mapped["User"] = relationship(back_populates='topics')
