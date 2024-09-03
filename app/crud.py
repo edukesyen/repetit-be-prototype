@@ -105,3 +105,35 @@ class CRUDTopic(CRUDBase):
 topic = CRUDTopic()
 
 
+class CRUDMaterial(CRUDBase):
+    def __init__(self):
+        super().__init__(models.Material)
+
+    def get_by_topic_id(self, db: Session, topic_id: int):
+        """Retrieve all materials for a given topic ID."""
+        return db.execute(select(self.model).where(self.model.topic_id == topic_id)).scalars().all()
+
+material = CRUDMaterial()
+
+
+
+class CRUDFlashcard(CRUDBase):
+    def __init__(self):
+        super().__init__(models.Flashcard)
+
+    def get_by_topic_id(self, db: Session, topic_id: int):
+        """Retrieve all flashcards for a given topic ID."""
+        return db.execute(select(self.model).where(self.model.topic_id == topic_id)).scalars().all()
+
+flashcard = CRUDFlashcard()
+
+
+class CRUDFlashcardReview(CRUDBase):
+    def __init__(self):
+        super().__init__(models.FlashcardReview)
+
+    def get_by_flashcard_id(self, db: Session, flashcard_id: int):
+        """Retrieve all flashcard reviews for a given flashcard ID."""
+        return db.execute(select(self.model).where(self.model.flashcard_id == flashcard_id)).scalars().all()
+
+flashcard_review = CRUDFlashcardReview()

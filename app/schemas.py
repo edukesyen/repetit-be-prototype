@@ -1,6 +1,8 @@
 # app/schemas.py
 
 from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
 
 
 class UserBase(BaseModel):
@@ -41,3 +43,69 @@ class Topic(TopicBase):
 
     class Config:
         orm_mode = True
+
+
+
+
+class MaterialBase(BaseModel):
+    topic_id: int
+    type: str
+    file_name: Optional[str]
+    file_path: Optional[str]
+    content: str
+
+class MaterialCreate(MaterialBase):
+    pass
+
+class MaterialUpdate(MaterialBase):
+    pass
+
+class Material(MaterialBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class FlashcardBase(BaseModel):
+    topic_id: int
+    question: str
+    due_date: datetime
+    review_criteria: str
+
+class FlashcardCreate(FlashcardBase):
+    pass
+
+class FlashcardUpdate(FlashcardBase):
+    pass
+
+class Flashcard(FlashcardBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+
+
+class FlashcardReviewBase(BaseModel):
+    flashcard_id: int
+    date: datetime
+    answer: str
+    score: int
+    review: str
+    
+class FlashcardReviewCreate(FlashcardReviewBase):
+    pass
+
+class FlashcardReviewUpdate(FlashcardReviewBase):
+    pass
+
+class FlashcardReview(FlashcardReviewBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+
