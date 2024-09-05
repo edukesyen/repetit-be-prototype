@@ -1,14 +1,94 @@
 # app/main.py
 
+import datetime
 # from typing import List
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import engine, get_db
 
+from .flashcard import Flashcard
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+@app.get("/flashcard/generate/", response_model=None)
+def generate_flashcard(
+    topic_id: int,
+    db: Session = Depends(get_db),
+):
+    materials = crud.material.get_by_topic_id(db, topic_id)
+    materials = [material.content for material in materials]
+    material = " __[divider]__ ".join(materials)
+    # print(material)    
+    flashcard = Flashcard(material)
+    questions_df = flashcard.generate()
+    flashcards = questions_df.to_dict(orient="records")
+    
+    for flashcard in flashcards:
+        print(flashcard)
+        today = datetime.date.today()
+        tomorrow = today + datetime.timedelta(days=1)
+        data = {
+            "topic_id": topic_id,
+            "due_date": tomorrow,
+            "question": flashcard["question"], 
+            "expected_answer": flashcard["expected_answer"],
+            "answer_criteria_1": flashcard["answer_criteria_1"],
+            "answer_criteria_2": flashcard["answer_criteria_2"],
+            "answer_criteria_3": flashcard["answer_criteria_3"],
+        }
+        flashcard_create = schemas.FlashcardCreate(**data)
+        crud.flashcard.create(db, flashcard_create)
+    
+    return jsonable_encoder(flashcards)
+
+
+@app.post("/flashcard/evaluate/", response_model=None)
+def evaluate_flashcard(
+    flashcard_id: int,
+    obj_in: dict = {"answer": "string"},
+    db: Session = Depends(get_db),
+):
+    fc = crud.flashcard.get_by_id(db, flashcard_id)
+    topic_id = fc.topic_id
+    print(obj_in["answer"])
+
+    materials = crud.material.get_by_topic_id(db, topic_id)
+    materials = [material.content for material in materials]
+    material = " __[divider]__ ".join(materials)  
+
+    flashcard = Flashcard(material)
+    evaluation_df = flashcard.evaluate(
+        question=fc.question,
+        answer=obj_in["answer"],
+        expected_answer=fc.expected_answer,
+        answer_criteria_1=fc.answer_criteria_1,
+        answer_criteria_2=fc.answer_criteria_2,
+        answer_criteria_3=fc.answer_criteria_3,
+    )
+    evaluations = evaluation_df.to_dict(orient="records")  
+    for evaluation in evaluations:
+        today = datetime.date.today()
+        print(evaluation)
+        data = {
+            "flashcard_id": flashcard_id,
+            "date": today,
+            "answer": obj_in["answer"], 
+            "score": int(evaluation["passed_criteria_1"]) + int(evaluation["passed_criteria_2"]) + int(evaluation["passed_criteria_3"]) , 
+            "review": "null",
+            "passed_criteria_1": bool(evaluation["passed_criteria_1"]),
+            "passed_criteria_2": bool(evaluation["passed_criteria_2"]),
+            "passed_criteria_3": bool(evaluation["passed_criteria_3"]),
+        }
+        print(data)
+        evaluation_create = schemas.FlashcardReviewCreate(**data)
+        crud.flashcard_review.create(db, evaluation_create)
+
+    return jsonable_encoder(evaluations)
 
 
 

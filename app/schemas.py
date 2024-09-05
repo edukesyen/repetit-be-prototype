@@ -69,9 +69,12 @@ class Material(MaterialBase):
 
 class FlashcardBase(BaseModel):
     topic_id: int
-    question: str
     due_date: datetime
-    review_criteria: str
+    question: str
+    expected_answer: str
+    answer_criteria_1: str
+    answer_criteria_2: str
+    answer_criteria_3: str
 
 class FlashcardCreate(FlashcardBase):
     pass
@@ -94,6 +97,9 @@ class FlashcardReviewBase(BaseModel):
     answer: str
     score: int
     review: str
+    passed_criteria_1: bool
+    passed_criteria_2: bool
+    passed_criteria_3: bool
     
 class FlashcardReviewCreate(FlashcardReviewBase):
     pass
