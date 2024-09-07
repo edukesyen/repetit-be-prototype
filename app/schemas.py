@@ -80,7 +80,16 @@ class FlashcardCreate(FlashcardBase):
     pass
 
 class FlashcardUpdate(FlashcardBase):
-    pass
+    topic_id: Optional[int] = None
+    due_date: Optional[datetime] = None
+    question: Optional[str] = None
+    expected_answer: Optional[str] = None
+    answer_criteria_1: Optional[str] = None
+    answer_criteria_2: Optional[str] = None
+    answer_criteria_3: Optional[str] = None
+
+    class Config:
+        orm_mode = True
 
 class Flashcard(FlashcardBase):
     id: int

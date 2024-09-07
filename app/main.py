@@ -7,6 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import engine, get_db
+from .fsrs_scheduler import FSRSScheduler
 
 from .flashcard import Flashcard
 
@@ -30,7 +31,8 @@ def generate_flashcard(
     
     for flashcard in flashcards:
         print(flashcard)
-        today = datetime.date.today()
+        today = datetime.datetime.now(datetime.timezone.utc)
+        today = today.replace(tzinfo=datetime.timezone.utc)
         tomorrow = today + datetime.timedelta(days=1)
         data = {
             "topic_id": topic_id,
@@ -62,6 +64,7 @@ def evaluate_flashcard(
     material = " __[divider]__ ".join(materials)  
 
     flashcard = Flashcard(material)
+    
     evaluation_df = flashcard.evaluate(
         question=fc.question,
         answer=obj_in["answer"],
@@ -71,14 +74,18 @@ def evaluate_flashcard(
         answer_criteria_3=fc.answer_criteria_3,
     )
     evaluations = evaluation_df.to_dict(orient="records")  
+
     for evaluation in evaluations:
-        today = datetime.date.today()
+        score = int(evaluation["passed_criteria_1"]) + int(evaluation["passed_criteria_2"]) + int(evaluation["passed_criteria_3"])  
+
+        today = datetime.datetime.now(datetime.timezone.utc)
+        today = today.replace(tzinfo=datetime.timezone.utc)
         print(evaluation)
         data = {
             "flashcard_id": flashcard_id,
             "date": today,
             "answer": obj_in["answer"], 
-            "score": int(evaluation["passed_criteria_1"]) + int(evaluation["passed_criteria_2"]) + int(evaluation["passed_criteria_3"]) , 
+            "score": score, 
             "review": "null",
             "passed_criteria_1": bool(evaluation["passed_criteria_1"]),
             "passed_criteria_2": bool(evaluation["passed_criteria_2"]),
@@ -87,6 +94,35 @@ def evaluate_flashcard(
         print(data)
         evaluation_create = schemas.FlashcardReviewCreate(**data)
         crud.flashcard_review.create(db, evaluation_create)
+
+        first_review = (
+            db.query(models.FlashcardReview)
+            .filter(models.FlashcardReview.flashcard_id == flashcard_id)
+            .order_by(models.FlashcardReview.date.asc())
+            .first()
+        )
+
+        if first_review:
+            first_review_date = first_review.date
+        else:
+            first_review_date = datetime.datetime.now(datetime.timezone.utc)
+        
+        first_review_date = first_review_date.replace(tzinfo=datetime.timezone.utc)
+
+        fsrs_scheduler = FSRSScheduler(
+            flashcard_id=flashcard_id, 
+            first_review_date=first_review_date
+        )
+
+        fsrs_scheduler.add_review(score)
+        fc_upd_data = {
+            "due_date": fsrs_scheduler.get_next_review()
+        }
+        flashcard_update = schemas.FlashcardUpdate(**fc_upd_data)
+        db_flashcard = crud.flashcard.get_by_id(db, flashcard_id)
+        if db_flashcard is None:
+            raise HTTPException(status_code=404, detail="Flashcard not found")
+        crud.flashcard.update(db, db_flashcard, flashcard_update)
 
     return jsonable_encoder(evaluations)
 

@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:d8134a33e04aebe42a7651bdbcd8b9d54f6023d0ede783cbb73dcde1d8ba267a"
+content_hash = "sha256:6f0271129950eda0fc8d557dffb93f5162d2fbabc4c657c79d0aef0b4ebc0e52"
 
 [[package]]
 name = "alembic"
@@ -184,6 +184,17 @@ dependencies = [
 files = [
     {file = "fastapi-0.112.2-py3-none-any.whl", hash = "sha256:db84b470bd0e2b1075942231e90e3577e12a903c4dc8696f0d206a7904a7af1c"},
     {file = "fastapi-0.112.2.tar.gz", hash = "sha256:3d4729c038414d5193840706907a41839d839523da6ed0c2811f1168cac1798c"},
+]
+
+[[package]]
+name = "fsrs"
+version = "3.0.0"
+requires_python = ">=3.9"
+summary = "Free Spaced Repetition Scheduler"
+groups = ["default"]
+files = [
+    {file = "fsrs-3.0.0-py3-none-any.whl", hash = "sha256:a947185c689667e87529e79c58dd3e5612efd01af84c374ed7782158f21f4b22"},
+    {file = "fsrs-3.0.0.tar.gz", hash = "sha256:de095a1bbeed41861492335f20cb60f19de471c8998503ce9b5f2a914974e759"},
 ]
 
 [[package]]
