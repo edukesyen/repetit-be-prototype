@@ -19,6 +19,7 @@ class FSRSScheduler ():
     def get_next_review(self):
         now = copy.deepcopy(self.first_review_date)
         logs = []
+        print("FSRS LOGS", logs)
         for rating in self.ratings:
             print(now)
             print(type(now))

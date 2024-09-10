@@ -37,10 +37,11 @@ class Material(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     topic_id = Column(Integer, ForeignKey('topics.id'))
-    type = Column(String, nullable=False)
-    file_name = Column(String, nullable=True)
-    file_path = Column(String, nullable=True)
+    name = Column(String, nullable=False)
     content = Column(String, nullable=False)
+    # type = Column(String, nullable=False)
+    # file_name = Column(String, nullable=True)
+    # file_path = Column(String, nullable=True)
 
     topic: Mapped["Topic"] = relationship(back_populates='materials')
 
@@ -51,6 +52,7 @@ class Flashcard(Base):
     id = Column(Integer, primary_key=True, index=True)
     topic_id = Column(Integer, ForeignKey("topics.id"))
     due_date = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=True)
     question = Column(String, nullable=False)
     expected_answer = Column(String, nullable=True)
     answer_criteria_1 = Column(String, nullable=True)
