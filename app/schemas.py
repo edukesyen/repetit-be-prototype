@@ -54,6 +54,7 @@ class MaterialBase(BaseModel):
     # type: str
     # file_name: Optional[str]
     # file_path: Optional[str]
+    
 
 class MaterialCreate(MaterialBase):
     pass
@@ -77,6 +78,11 @@ class FlashcardBase(BaseModel):
     answer_criteria_1: str
     answer_criteria_2: str
     answer_criteria_3: str
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        }
     
 
 class FlashcardCreate(FlashcardBase):
@@ -103,7 +109,6 @@ class Flashcard(FlashcardBase):
 
 
 
-
 class FlashcardReviewBase(BaseModel):
     flashcard_id: int
     date: datetime
@@ -113,6 +118,11 @@ class FlashcardReviewBase(BaseModel):
     passed_criteria_1: bool
     passed_criteria_2: bool
     passed_criteria_3: bool
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        }
 
 class FlashcardReviewCreate(FlashcardReviewBase):
     pass

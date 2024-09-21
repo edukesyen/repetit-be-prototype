@@ -54,7 +54,7 @@ class Flashcard:
 
         Contoh format respons: 
         passed_criteria_1;passed_criteria_2;passed_criteria_3
-        1;0;1
+        1;1;1
 
         artinya (kriteria_1=terpenuhi,kriteria_2=tidak_terpenuhi,kriteria_3=terpenuhi,)
         """

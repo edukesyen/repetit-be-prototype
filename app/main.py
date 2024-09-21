@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import engine, get_db
 from .fsrs_scheduler import FSRSScheduler
-
 from .flashcard import Flashcard
 
 models.Base.metadata.create_all(bind=engine)
@@ -53,11 +52,12 @@ def generate_flashcard(
         print(flashcard)
         # today = datetime.datetime.now(datetime.timezone.utc)
         today = obj_in["datetime_today"]
-        today = datetime.datetime.strptime(today,  "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)
+        today = datetime.datetime.strptime(today, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)
+        due_date = today + datetime.timedelta(hours=1)
         data = {
             "topic_id": topic_id,
-            "due_date": today + datetime.timedelta(hours=1),
-            "created_at": today,
+            "due_date": due_date.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',
+            "created_at": today.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',
             "question": flashcard["question"], 
             "expected_answer": flashcard["expected_answer"],
             "answer_criteria_1": flashcard["answer_criteria_1"],
@@ -106,7 +106,7 @@ def evaluate_flashcard(
         print(evaluation)
         data = {
             "flashcard_id": flashcard_id,
-            "date": today,
+            "date": today.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',
             "answer": obj_in["answer"], 
             "score": score, 
             "review": "null",
@@ -118,21 +118,6 @@ def evaluate_flashcard(
         evaluation_create = schemas.FlashcardReviewCreate(**data)
         crud.flashcard_review.create(db, evaluation_create)
 
-        # first_review = (
-        #     db.query(models.FlashcardReview)
-        #     .filter(models.FlashcardReview.flashcard_id == flashcard_id)
-        #     .order_by(models.FlashcardReview.date.asc())
-        #     .first()
-        # )
-
-        # if first_review:
-        #     first_review_date = first_review.date
-        # else:
-        #     first_review_date = datetime.datetime.now(datetime.timezone.utc)
-        
-        # first_review_date = first_review_date.replace(tzinfo=datetime.timezone.utc)
-
-        # fc_created_at = datetime.datetime.strptime(fc.created_at, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)
         fc_created_at = fc.created_at
         fc_created_at = fc_created_at.isoformat()
         # fc_created_at = datetime.datetime.strptime(fc_created_at, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)
@@ -150,9 +135,9 @@ def evaluate_flashcard(
             .order_by(models.FlashcardReview.date.asc()).all()
         )
         for review in review_history:
-            fsrs_scheduler.add_review(review.score)
+            fsrs_scheduler.add_review(review.score, review.date)
 
-        fsrs_scheduler.add_review(score)
+        fsrs_scheduler.add_review(score, today)
         fc_upd_data = {
             "due_date": fsrs_scheduler.get_next_review()
         }
@@ -201,7 +186,7 @@ def get_flashcard_last_review(
         "answer": last_review.answer,
         "score": last_review.score,
         "next_review_date": datetime.datetime.fromisoformat(str(flaschcard_detail.due_date)).strftime("%d %B %Y %H:%M:%S"),
-        "next_review_date_iso": flaschcard_detail.due_date,
+        "next_review_date_iso": flaschcard_detail.due_date.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',
         "criteria": [
             {
                 "passed": int(last_review.passed_criteria_1),
