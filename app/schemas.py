@@ -11,6 +11,8 @@ class UserBase(BaseModel):
     password: str
     diamond: int
     star: int
+    streak: int
+    target: int
 
 class UserCreate(UserBase):
     pass

@@ -167,7 +167,10 @@ def get_flashcard_last_review(
         .order_by(models.FlashcardReview.id.desc())
         .first()
     )
-    topic_id = (
+    if last_review is None:
+        return jsonable_encoder({"message": "no data"})
+
+    topic_id = (    
         db.query(models.Flashcard)
         .filter(models.Flashcard.id == flashcard_id)
         .first()
@@ -201,6 +204,42 @@ def get_flashcard_last_review(
                 "name": flaschcard_detail.answer_criteria_3,
             },
         ]
+    }
+
+    return jsonable_encoder(response)
+
+@app.get("/flashcards/retention/{topic_id}", response_model=None)
+def get_flashcard_retention(
+    topic_id: int,
+    db: Session = Depends(get_db)
+):
+    topic = crud.topic.get_by_id(db, topic_id)
+    flashcards = crud.flashcard.get_by_topic_id(db, topic_id)
+    total_score = 0
+
+    for flashcard in flashcards:
+        flaschcard_detail = (
+            db.query(models.Flashcard)
+            .filter(models.Flashcard.id == flashcard.id)
+            .first()
+        )
+        last_review = (
+            db.query(models.FlashcardReview)
+            .filter(models.FlashcardReview.flashcard_id == flashcard.id)
+            .order_by(models.FlashcardReview.id.desc())
+            .first()
+        )    
+        if last_review is not None:
+            total_score += last_review.score
+
+    if total_score == 0:
+        retention_percentage = 0
+    else:
+        retention_percentage = (total_score / (len(flashcards) * 3)) * 100
+
+    response = {
+        "id": topic_id,
+        "retention_percentage": retention_percentage
     }
 
     return jsonable_encoder(response)

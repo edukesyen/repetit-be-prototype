@@ -13,8 +13,10 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
     password = Column(String, nullable=False)
-    diamond = Column(Integer)
-    star = Column(Integer)
+    diamond = Column(Integer, nullable=True)
+    star = Column(Integer, nullable=True)
+    streak = Column(Integer, nullable=True)
+    target = Column(Integer, nullable=True)
 
     topics: Mapped[List["Topic"]] = relationship(back_populates="user")
 
